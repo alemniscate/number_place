@@ -58,3 +58,38 @@ body {
 .num-buttons button:active {
     transform: scale(0.95);
 }
+
+.ex-buttons {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.ex-buttons button {
+    width: 80px;
+    height: 40px;
+    font-size: 18px;
+    font-weight: bold;
+    border: 2px solid #333;
+    background-color: #fff;
+    color: #333;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#hint {
+    background-color: #FF3366;
+    color: #efe4e4;
+}
+
+#answer {
+    background-color: #3333FF;
+    color: #efe4e4;
+}
+
+#new {
+    width: 100px;
+}

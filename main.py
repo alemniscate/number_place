@@ -9,6 +9,8 @@ EMPTY = 0
 game = {
     "board": [],
     "original": [],
+    "hint": [],
+    "answer": [],
     "selected": None,
     "completed": False
 }
@@ -32,12 +34,15 @@ def set_timeout(f, ms):
 def game_start():
     global game
     
-    board = get_puzzle_data()
+    board, answer_board = get_puzzle_data()
+    
     game = {
         "selected": None,
         "completed": False,
         "board": board,
-        "original": [row[:] for row in board]
+        "original": [row[:] for row in board],
+        "hint": [[0] * GRID_SIZE for _ in range(GRID_SIZE)],
+        "answer": answer_board
     }
     
     q_text("#title", "ナンバープレース")
@@ -56,12 +61,25 @@ def get_puzzle_data():
         [2, 0, 1, 0, 7, 3, 0, 0, 0],
         [0, 9, 0, 0, 1, 2, 0, 0, 0]
     ]
+
+    answer = [
+        [9, 7, 5, 2, 3, 1, 6, 4, 8],
+        [8, 1, 2, 4, 5, 6, 3, 9, 7],
+        [4, 3, 6, 7, 8, 9, 1, 2, 5],
+        [1, 8, 4, 3, 2, 5, 9, 7, 6],
+        [6, 5, 9, 1, 4, 7, 2, 8, 3],
+        [7, 2, 3, 9, 6, 8, 4, 5, 1],
+        [3, 6, 7, 5, 9, 4, 8, 1, 2],
+        [2, 4, 1, 8, 7, 3, 5, 6, 9],
+        [5, 9, 8, 6, 1, 2, 7, 3, 4]
+    ]
     
     gboard = generate_puzzle()
     if gboard is None:
-        return board
+        return board, answer
+    ganswer = get_answer()
     
-    return gboard
+    return gboard, ganswer
 
 def can_place_number(board, row, col, num):
     
@@ -171,6 +189,9 @@ def draw_numbers():
             if game["original"][row][col] != 0:
                 context.fillStyle = "#000000"
                 context.font = "bold 20px Arial"
+            elif game["hint"][row][col] != 0:
+                context.fillStyle = "#FF3366"
+                context.font = "bold 20px Arial"
             else:
                 context.fillStyle = "#0066cc"
                 context.font = "18px Arial"
@@ -210,14 +231,31 @@ def eraser_button_click(event):
         return
     game["board"][row][col] = 0
     draw_board()
-    
+
 def answer_button_click(event):
-    game["board"] = get_answer()
+    game["board"] = game["answer"]
     draw_board()
+    
+def hint_button_click(event):
+    if game["selected"] is None:
+        q_text("#title", "先にセルを選択してください")
+        set_timeout(lambda: q_text("#title", "ナンバープレース"), 1000)
+        return
+    row, col = game["selected"]
+    if game["original"][row][col] != EMPTY:
+        return
+    game["board"][row][col] = game["answer"][row][col]
+    game["hint"][row][col] = game["answer"][row][col]
+    draw_board()
+    
+def new_button_click(event):
+    game_start()
     
 canvas.addEventListener("click", canvas_on_click)
 q("#eraser").addEventListener("click", eraser_button_click)
+q("#hint").addEventListener("click", hint_button_click)
 q("#answer").addEventListener("click", answer_button_click)
+q("#new").addEventListener("click", new_button_click)
 for i in range(1, 10):
     btn = q(f"#num{i}")
     btn.addEventListener("click", lambda e: num_button_on_click(int(e.target.textContent)))
@@ -255,11 +293,15 @@ js.document.addEventListener("keydown", handle_key)
 import copy
 
 complete_flag = False
-puzzle_board = [[]]
-answer_board = [[]]
+puzzle_board = []
+answer_board = []
 
 def generate_puzzle():
-    global answer_board
+    global answer_board, puzzle_board, complete_flag
+    
+    answer_board = []
+    puzzle_board = []
+    complete_flag = False
     
     gboard = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
     
@@ -276,7 +318,7 @@ def get_answer():
     return answer_board
     
 def blank_manyplace(board):
-    show_count = random.choice([24, 25, 26, 27, 28])
+    show_count = random.choice([35, 36, 37, 38])
     
     selected = sample([n for n in range(GRID_SIZE * GRID_SIZE)], show_count)
     
