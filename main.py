@@ -318,7 +318,7 @@ def get_answer():
     return answer_board
     
 def blank_manyplace(board):
-    show_count = random.choice([35, 36, 37, 38])
+    show_count = random.choice([37, 38, 39, 40])
     
     selected = sample([n for n in range(GRID_SIZE * GRID_SIZE)], show_count)
     
