@@ -23,12 +23,19 @@
         <button id="eraser">消</button>
     </div>
     <div class="ex-buttons">
+        <button id="undo">
+            <img src="image/undo.png" alt="1つ戻す" width="32" height="32">
+        </button>
+        <button id="redo">
+            <img src="image/redo.png" alt="やり直す" width="32" height="32">
+        </button>
         <button id="hint">ヒント</button>
         <button id="answer">答え</button>
         <button id="new">次の問題</button>
     </div>
 </body>
 <script type="module" src="https://pyscript.net/releases/2025.8.1/core.js"></script>
+<script type="mpy" src="history.py"></script>
 <script type="mpy" src="main.py"></script>
 <script type="mpy">game_start()</script>
 </html>

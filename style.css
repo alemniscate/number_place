@@ -93,3 +93,7 @@ body {
 #new {
     width: 100px;
 }
+
+#undo, #redo {
+    width: 50px;
+}

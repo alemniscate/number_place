@@ -6,13 +6,16 @@ BOX_SIZE = 3
 CELL_SIZE = 43
 EMPTY = 0
 
+hist = History()
+
 game = {
     "board": [],
     "original": [],
     "hint": [],
     "answer": [],
     "selected": None,
-    "completed": False
+    "completed": False,
+    "history": History()
 }
 
 #
@@ -42,7 +45,8 @@ def game_start():
         "board": board,
         "original": [row[:] for row in board],
         "hint": [[0] * GRID_SIZE for _ in range(GRID_SIZE)],
-        "answer": answer_board
+        "answer": answer_board,
+        "history": History()
     }
     
     q_text("#title", "ナンバープレース")
@@ -101,19 +105,22 @@ def can_place_number(board, row, col, num):
 
 def place_number(row, col, num):
     if game["completed"]:
-        return
+        return None
     if game["original"][row][col] != 0:
-        return
+        return None
     if can_place_number(game["board"], row, col, num):
+        oldnum = game["board"][row][col] 
         game["board"][row][col] = num
         if check_completion():
             game["completed"] = True
             q_text("#title", "おめでとう★ ナンバープレース完成！")
         else:
             q_text("#title", "ナンバープレース")
+        return oldnum
     else:
         q_text("#title", "その数字は置けません")
         set_timeout(lambda: q_text("#title", "ナンバープレース"), 1000)
+        return None
         
 def check_completion():
     for row in range(GRID_SIZE):
@@ -220,7 +227,9 @@ def num_button_on_click(num):
         set_timeout(lambda: q_text("#title", "ナンバープレース"), 1000)
         return
     row, col = game["selected"]
-    place_number(row, col, num)
+    oldnum = place_number(row, col, num)
+    if oldnum != None:
+        game["history"].update(row, col, num, oldnum)
     draw_board()
     
 def eraser_button_click(event):
@@ -229,11 +238,14 @@ def eraser_button_click(event):
     row, col = game["selected"]
     if game["original"][row][col] != 0:
         return
+    oldnum = game["board"][row][col] 
     game["board"][row][col] = 0
+    game["history"].update(row, col, 0, oldnum)
     draw_board()
 
 def answer_button_click(event):
     game["board"] = game["answer"]
+    game["history"].clear()
     draw_board()
     
 def hint_button_click(event):
@@ -251,11 +263,29 @@ def hint_button_click(event):
 def new_button_click(event):
     game_start()
     
+def undo_button_click(event):
+    action = game["history"].undo()
+    if action == None:
+        return
+    row, col, num, oldnum = action
+    game["board"][row][col] = oldnum
+    draw_board()
+
+def redo_button_click(event):
+    action = game["history"].redo()
+    if action == None:
+        return
+    row, col, num, oldnum = action
+    game["board"][row][col] = num
+    draw_board()
+    
 canvas.addEventListener("click", canvas_on_click)
 q("#eraser").addEventListener("click", eraser_button_click)
 q("#hint").addEventListener("click", hint_button_click)
 q("#answer").addEventListener("click", answer_button_click)
 q("#new").addEventListener("click", new_button_click)
+q("#undo").addEventListener("click", undo_button_click)
+q("#redo").addEventListener("click", redo_button_click)
 for i in range(1, 10):
     btn = q(f"#num{i}")
     btn.addEventListener("click", lambda e: num_button_on_click(int(e.target.textContent)))
